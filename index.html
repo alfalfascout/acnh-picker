@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0">
+<title>Animal Crossing New Horizons Favorite Villager Picker</title>
+<style>
+body {
+    background:#FFF;
+    color:#000;
+    font-family:verdana, sans-serif;
+    font-size:10pt;
+    margin:0;
+    padding:10px;
+}
+
+a:link, a:visited {
+    color:#008;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+a:active, a:hover {
+    color:#ACF;
+}
+
+.info {
+    font-weight:bold;
+}
+
+button {
+    font-family:inherit;
+    cursor:pointer;
+    border:0;
+    border-radius:3px;
+    padding:0.3em 0.5em;
+    background:#CCC;
+    color:#000;
+}
+
+button:hover {
+    background:#DDD;
+}
+
+button.disabled {
+    background:#DDD;
+    color:#888;
+    cursor:not-allowed;
+}
+
+button.disabled:hover {
+    background:#DDD;
+}
+
+#container {
+    position:relative;
+    margin-left:-10px;
+    margin-right:-10px;
+    padding:10px;
+    overflow:hidden;
+}
+
+@media (min-width:1024px) {
+    /* Put the found favorites beside the picking div when the window is sufficiently large */
+    #picking {
+        float:left;
+        width:636px;
+    }
+
+    #secondary {
+        margin-left:646px;
+    }
+}
+
+@media (min-width:1300px) {
+    /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
+    #picking {
+        width:50%;
+    }
+
+    #secondary {
+        margin-left:51%;
+    }
+}
+
+#pick {
+    background:#58F;
+    color:#FFF;
+    font-size:larger;
+    font-weight:bold;
+    width:6em;
+    border-radius:5px;
+    margin-right:10px;
+}
+
+#pick.disabled {
+    background:#ACF;
+}
+
+#pick:hover {
+    background:#ACF;
+}
+
+.item-list {
+    padding:0;
+    list-style-type:none;
+    line-height:100px;
+}
+
+.item-list li {
+    margin:0;
+    display:inline-block;
+    height:100px;
+    width:100px;
+    line-height:100px;
+    border:3px solid transparent;
+    text-align:center;
+    position:relative;
+    vertical-align:top;
+    overflow:hidden;
+    border-radius:100%;
+    background:#F7F7F7;
+    color:#000;
+}
+
+.item-list li img {
+    vertical-align:middle;
+    max-height:100%;
+    max-width:100%;
+}
+
+.item-list li span {
+    display:inline-block;
+    vertical-align:middle;
+    line-height:1.2;
+}
+
+@media (max-width:636px) {
+    .item-list {
+        line-height:75px;
+    }
+
+    .item-list li {
+        line-height:75px;
+        height:75px;
+        width:75px;
+    }
+}
+
+@media (max-width:423px) {
+    .item-list {
+        line-height:50px;
+    }
+
+    .item-list li {
+        line-height:50px;
+        height:50px;
+        width:50px;
+    }
+}
+
+#evaluating li {
+    cursor:pointer;
+}
+
+#favorites li {
+    cursor:move;
+}
+
+.item-list li:hover {
+    background:#CDF;
+}
+
+.item-list.sorting li:hover {
+    background:#F7F7F7;
+}
+
+#evaluating li.selected {
+    border:3px solid #7AC;
+}
+
+#evaluating, #buttons {
+    text-align:center;
+    margin:auto;
+}
+
+#evaluating li.notice {
+    width:auto;
+    height:auto;
+    max-width:260px;
+    margin:auto;
+    background:#F7F7F7;
+    border-radius:10px;
+    padding:30px 30px;
+    color:#000;
+    text-align:center;
+    line-height:1.4;
+    cursor:auto;
+    font-size:10pt;
+}
+
+#buttons {
+    margin-top:30px;
+    position:relative;
+    z-index:3;
+}
+</style>
+</head>
+<body>
+<h1>Animal Crossing New Horizons Favorite Villager Picker</h1>
+
+<p>This picker was made possible by <a href="https://github.com/antialiasis/favorite-picker">antialiasis's picker code</a> and the images &amp; data at <a href=https://animalcrossing.fandom.com/wiki/Villager_list_%28New_Horizons%29">Animal Crossing New Horizon's Villager List on Fandom</a>.</p>
+
+<div id="container">
+
+<div id="picking">
+<ul id="evaluating" class="item-list">
+</ul>
+
+<p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button></p>
+</div>
+
+<div id="secondary">
+<p>Include personalities:
+<label><input type="checkbox" name="personality" class="personality" value="Cranky" checked="checked"> Cranky</label>
+<label><input type="checkbox" name="personality" class="personality" value="Jock" checked="checked"> Jock</label>
+<label><input type="checkbox" name="personality" class="personality" value="Lazy" checked="checked"> Lazy</label>
+<label><input type="checkbox" name="personality" class="personality" value="Normal" checked="checked"> Normal</label>
+<label><input type="checkbox" name="personality" class="personality" value="Peppy" checked="checked"> Peppy</label>
+<label><input type="checkbox" name="personality" class="personality" value="Sisterly" checked="checked"> Sisterly</label>
+<label><input type="checkbox" name="personality" class="personality" value="Smug" checked="checked"> Smug</label>
+<label><input type="checkbox" name="personality" class="personality" value="Snooty" checked="checked"> Snooty</label>
+</p>
+
+<p>Include species:
+<label><input type="checkbox" name="species" class="species" value="Alligator" checked="checked"> Alligator</label>
+<label><input type="checkbox" name="species" class="species" value="Anteater" checked="checked"> Anteater</label>
+<label><input type="checkbox" name="species" class="species" value="Bear" checked="checked"> Bear</label>
+<label><input type="checkbox" name="species" class="species" value="Bird" checked="checked"> Bird</label>
+<label><input type="checkbox" name="species" class="species" value="Bull" checked="checked"> Bull</label>
+<label><input type="checkbox" name="species" class="species" value="Cat" checked="checked"> Cat</label>
+<label><input type="checkbox" name="species" class="species" value="Chicken" checked="checked"> Chicken</label>
+<label><input type="checkbox" name="species" class="species" value="Cow" checked="checked"> Cow</label>
+<label><input type="checkbox" name="species" class="species" value="Cub" checked="checked"> Cub</label>
+<label><input type="checkbox" name="species" class="species" value="Deer" checked="checked"> Deer</label>
+<label><input type="checkbox" name="species" class="species" value="Dog" checked="checked"> Dog</label>
+<label><input type="checkbox" name="species" class="species" value="Duck" checked="checked"> Duck</label>
+<label><input type="checkbox" name="species" class="species" value="Eagle" checked="checked"> Eagle</label>
+<label><input type="checkbox" name="species" class="species" value="Elephant" checked="checked"> Elephant</label>
+<label><input type="checkbox" name="species" class="species" value="Frog" checked="checked"> Frog</label>
+<label><input type="checkbox" name="species" class="species" value="Goat" checked="checked"> Goat</label>
+<label><input type="checkbox" name="species" class="species" value="Gorilla" checked="checked"> Gorilla</label>
+<label><input type="checkbox" name="species" class="species" value="Hamster" checked="checked"> Hamster</label>
+<label><input type="checkbox" name="species" class="species" value="Hippo" checked="checked"> Hippo</label>
+<label><input type="checkbox" name="species" class="species" value="Horse" checked="checked"> Horse</label>
+<label><input type="checkbox" name="species" class="species" value="Kangaroo" checked="checked"> Kangaroo</label>
+<label><input type="checkbox" name="species" class="species" value="Koala" checked="checked"> Koala</label>
+<label><input type="checkbox" name="species" class="species" value="Lion" checked="checked"> Lion</label>
+<label><input type="checkbox" name="species" class="species" value="Monkey" checked="checked"> Monkey</label>
+<label><input type="checkbox" name="species" class="species" value="Mouse" checked="checked"> Mouse</label>
+<label><input type="checkbox" name="species" class="species" value="Octopus" checked="checked"> Octopus</label>
+<label><input type="checkbox" name="species" class="species" value="Ostrich" checked="checked"> Ostrich</label>
+<label><input type="checkbox" name="species" class="species" value="Penguin" checked="checked"> Penguin</label>
+<label><input type="checkbox" name="species" class="species" value="Pig" checked="checked"> Pig</label>
+<label><input type="checkbox" name="species" class="species" value="Rabbit" checked="checked"> Rabbit</label>
+<label><input type="checkbox" name="species" class="species" value="Rhino" checked="checked"> Rhino</label>
+<label><input type="checkbox" name="species" class="species" value="Sheep" checked="checked"> Sheep</label>
+<label><input type="checkbox" name="species" class="species" value="Squirrel" checked="checked"> Squirrel</label>
+<label><input type="checkbox" name="species" class="species" value="Tiger" checked="checked"> Tiger</label>
+<label><input type="checkbox" name="species" class="species" value="Wolf" checked="checked"> Wolf</label>
+</p>
+
+<h2>Found favorites</h2>
+
+<ol id="favorites" class="item-list">
+</ol>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="picker.js"></script>
+<script src="picker-ui.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<script>
+'use strict';
+
+var items = [
+    {id: 'Agent S', name: 'Agent S', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/dd/NH-Agent_S_poster.png/revision/latest?cb=20200410184209', personality: 'Peppy', species: 'Squirrel'},
+	{id: 'Admiral', name: 'Admiral', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/52/NH-Admiral_poster.png/revision/latest?cb=20200522013249', personality: 'Cranky', species: 'Bird'},
+	{id: 'Agnes', name: 'Agnes', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e8/NH-Agnes_poster.png/revision/latest?cb=20200410185748', personality: 'Sisterly', species: 'Pig'},
+	{id: 'Al', name: 'Al', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/90/NH-Al_poster.png/revision/latest?cb=20200522013430', personality: 'Lazy', species: 'Gorilla'},
+	{id: 'Alfonso', name: 'Alfonso', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0d/NH-Alfonso_poster.png/revision/latest?cb=20200522013539', personality: 'Lazy', species: 'Alligator'},
+	{id: 'Alice', name: 'Alice', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/96/NH-Alice_poster.png/revision/latest?cb=20200522013639', personality: 'Normal', species: 'Koala'},
+	{id: 'Alli', name: 'Alli', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e8/NH-Alli_poster.png/revision/latest?cb=20200522013709', personality: 'Snooty', species: 'Alligator'},
+	{id: 'Amelia', name: 'Amelia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9d/NH-Amelia_poster.png/revision/latest?cb=20200410191249', personality: 'Snooty', species: 'Eagle'},
+	{id: 'Anabelle', name: 'Anabelle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/bd/NH-Anabelle_poster.png/revision/latest?cb=20200522013805', personality: 'Peppy', species: 'Anteater'},
+	{id: 'Anchovy', name: 'Anchovy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fc/NH-Anchovy_poster.png/revision/latest?cb=20200522013831', personality: 'Lazy', species: 'Bird'},
+	{id: 'Ankha', name: 'Ankha', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9a/NH-Ankha_poster.png/revision/latest?cb=20200410182618', personality: 'Snooty', species: 'Cat'},
+	{id: 'Angus', name: 'Angus', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e9/NH-Angus_poster.png/revision/latest?cb=20200522013857', personality: 'Cranky', species: 'Bull'},
+	{id: 'Anicotti', name: 'Anicotti', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e1/NH-Anicotti_poster.png/revision/latest?cb=20200410192311', personality: 'Peppy', species: 'Mouse'},
+	{id: 'Annalisa', name: 'Annalisa', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/64/NH-Annalisa_poster.png/revision/latest?cb=20200522013931', personality: 'Normal', species: 'Anteater'},
+	{id: 'Annalise', name: 'Annalise', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/26/NH-Annalise_poster.png/revision/latest?cb=20200522013957', personality: 'Snooty', species: 'Horse'},
+	{id: 'Antonio', name: 'Antonio', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d0/NH-Antonio_poster.png/revision/latest?cb=20200522014023', personality: 'Jock', species: 'Anteater'},
+	{id: 'Apollo', name: 'Apollo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/78/NH-Apollo_poster.png/revision/latest?cb=20200410191419', personality: 'Cranky', species: 'Eagle'},
+	{id: 'Apple', name: 'Apple', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/37/NH-Apple_poster.png/revision/latest?cb=20200522014055', personality: 'Peppy', species: 'Hamster'},
+	{id: 'Astrid', name: 'Astrid', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3f/NH-Astrid_poster.png/revision/latest?cb=20200522014120', personality: 'Snooty', species: 'Kangaroo'},
+	{id: 'Audie', name: 'Audie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/ac/NH-Audie_poster.png/revision/latest?cb=20200410183255', personality: 'Peppy', species: 'Wolf'},
+	{id: 'Aurora', name: 'Aurora', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/33/NH-Aurora_poster.png/revision/latest?cb=20200410190924', personality: 'Normal', species: 'Penguin'},
+	{id: 'Ava', name: 'Ava', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/25/NH-Ava_poster.png/revision/latest?cb=20200522014146', personality: 'Normal', species: 'Chicken'},
+	{id: 'Avery', name: 'Avery', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/95/NH-Avery_poster.png/revision/latest?cb=20200410191139', personality: 'Cranky', species: 'Eagle'},
+	{id: 'Axel', name: 'Axel', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c5/NH-Axel_poster.png/revision/latest?cb=20200522014220', personality: 'Jock', species: 'Elephant'},
+	{id: 'Baabara', name: 'Baabara', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d0/NH-Baabara_poster.png/revision/latest?cb=20200410184807', personality: 'Snooty', species: 'Sheep'},
+	{id: 'Bam', name: 'Bam', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b2/NH-Bam_poster.png/revision/latest?cb=20200522020326', personality: 'Jock', species: 'Deer'},
+	{id: 'Bangle', name: 'Bangle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c7/NH-Bangle_poster.png/revision/latest?cb=20200410183706', personality: 'Peppy', species: 'Tiger'},
+	{id: 'Barold', name: 'Barold', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/99/NH-Barold_poster.png/revision/latest?cb=20200522020415', personality: 'Lazy', species: 'Cub'},
+	{id: 'Bea', name: 'Bea', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/ca/NH-Bea_poster.png/revision/latest?cb=20200522020603', personality: 'Normal', species: 'Dog'},
+	{id: 'Beardo', name: 'Beardo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c7/NH-Beardo_poster.png/revision/latest?cb=20200522020636', personality: 'Smug', species: 'Bear'},
+	{id: 'Beau', name: 'Beau', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2a/NH-Beau_poster.png/revision/latest?cb=20200522020451', personality: 'Lazy', species: 'Deer'},
+	{id: 'Becky', name: 'Becky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ec/NH-Becky_poster.png/revision/latest?cb=20200522020704', personality: 'Snooty', species: 'Chicken'},
+	{id: 'Bella', name: 'Bella', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1e/NH-Bella_poster.png/revision/latest?cb=20200410192458', personality: 'Peppy', species: 'Mouse'},
+	{id: 'Benedict', name: 'Benedict', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0e/NH-Benedict_poster.png/revision/latest?cb=20200522020807', personality: 'Lazy', species: 'Chicken'},
+	{id: 'Benjamin', name: 'Benjamin', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5f/NH-Benjamin_poster.png/revision/latest?cb=20200522021534', personality: 'Lazy', species: 'Dog'},
+	{id: 'Bertha', name: 'Bertha', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3f/NH-Bertha_poster.png/revision/latest?cb=20200522021717', personality: 'Normal', species: 'Hippo'},
+	{id: 'Bettina', name: 'Bettina', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a9/NH-Bettina_poster.png/revision/latest?cb=20200410192221', personality: 'Normal', species: 'Mouse'},
+	{id: 'Bianca', name: 'Bianca', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e2/NH-Bianca_poster.png/revision/latest?cb=20200410183555', personality: 'Peppy', species: 'Tiger'},
+	{id: 'Biff', name: 'Biff', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2c/NH-Biff_poster.png/revision/latest?cb=20200522022022', personality: 'Jock', species: 'Hippo'},
+	{id: 'Big Top', name: 'Big Top', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/ca/NH-Big_Top_poster.png/revision/latest?cb=20200522022102', personality: 'Lazy', species: 'Elephant'},
+	{id: 'Bill', name: 'Bill', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4c/NH-Bill_poster.png/revision/latest?cb=20200522022341', personality: 'Jock', species: 'Duck'},
+	{id: 'Billy', name: 'Billy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d3/NH-Billy_poster.png/revision/latest?cb=20200522022646', personality: 'Jock', species: 'Goat'},
+	{id: 'Biskit', name: 'Biskit', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c8/NH-Biskit_poster.png/revision/latest?cb=20200522023459', personality: 'Lazy', species: 'Dog'},
+	{id: 'Bitty', name: 'Bitty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7c/NH-Bitty_poster.png/revision/latest?cb=20200522023552', personality: 'Snooty', species: 'Hippo'},
+	{id: 'Blaire', name: 'Blaire', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f3/NH-Blaire_poster.png/revision/latest?cb=20200410184330', personality: 'Snooty', species: 'Squirrel'},
+	{id: 'Blanche', name: 'Blanche', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/18/NH-Blanche_poster.png/revision/latest?cb=20200410191641', personality: 'Snooty', species: 'Ostrich'},
+	{id: 'Bluebear', name: 'Bluebear', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/50/NH-Bluebear_poster.png/revision/latest?cb=20200522023616', personality: 'Peppy', species: 'Cub'},
+	{id: 'Bob', name: 'Bob', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/14/NH-Bob_poster.png/revision/latest?cb=20200410181927', personality: 'Lazy', species: 'Cat'},
+	{id: 'Bonbon', name: 'Bonbon', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/75/NH-Bonbon_poster.png/revision/latest?cb=20200410185137', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Bones', name: 'Bones', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/91/NH-Bones_poster.png/revision/latest?cb=20200522023638', personality: 'Lazy', species: 'Dog'},
+	{id: 'Boomer', name: 'Boomer', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/12/NH-Boomer_poster.png/revision/latest?cb=20200410190457', personality: 'Lazy', species: 'Penguin'},
+	{id: 'Boone', name: 'Boone', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9c/NH-Boone_poster.png/revision/latest?cb=20200522023703', personality: 'Jock', species: 'Gorilla'},
+	{id: 'Boots', name: 'Boots', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f3/NH-Boots_poster.png/revision/latest?cb=20200522023756', personality: 'Jock', species: 'Alligator'},
+	{id: 'Boris', name: 'Boris', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/54/NH-Boris_poster.png/revision/latest?cb=20200410190014', personality: 'Cranky', species: 'Pig'},
+	{id: 'Boyd', name: 'Boyd', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9d/NH-Boyd_poster.png/revision/latest?cb=20200522023834', personality: 'Cranky', species: 'Gorilla'},
+	{id: 'Bree', name: 'Bree', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/42/NH-Bree_poster.png/revision/latest?cb=20200410192442', personality: 'Snooty', species: 'Mouse'},
+	{id: 'Broccolo', name: 'Broccolo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Broccolo_poster.png/revision/latest?cb=20200410192254', personality: 'Lazy', species: 'Mouse'},
+	{id: 'Broffina', name: 'Broffina', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c9/NH-Broffina_poster.png/revision/latest?cb=20200522024006', personality: 'Snooty', species: 'Chicken'},
+	{id: 'Bruce', name: 'Bruce', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6d/NH-Bruce_poster.png/revision/latest?cb=20200522023923', personality: 'Cranky', species: 'Deer'},
+	{id: 'Bubbles', name: 'Bubbles', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8d/NH-Bubbles_poster.png/revision/latest?cb=20200522024110', personality: 'Peppy', species: 'Hippo'},
+	{id: 'Buck', name: 'Buck', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b2/NH-Buck_poster.png/revision/latest?cb=20200522024142', personality: 'Jock', species: 'Horse'},
+	{id: 'Bud', name: 'Bud', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/ab/NH-Bud_poster.png/revision/latest?cb=20200522024206', personality: 'Jock', species: 'Lion'},
+	{id: 'Bunnie', name: 'Bunnie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/83/NH-Bunnie_poster.png/revision/latest?cb=20200410185724', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Butch', name: 'Butch', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9a/NH-Butch_poster.png/revision/latest?cb=20200522024229', personality: 'Cranky', species: 'Dog'},
+	{id: 'Buzz', name: 'Buzz', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f2/NH-Buzz_poster.png/revision/latest?cb=20200410191156', personality: 'Cranky', species: 'Eagle'},
+	{id: 'Cally', name: 'Cally', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/01/NH-Cally_poster.png/revision/latest?cb=20200410184015', personality: 'Normal', species: 'Squirrel'},
+	{id: 'Camofrog', name: 'Camofrog', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/91/NH-Camofrog_poster.png/revision/latest?cb=20200522045135', personality: 'Cranky', species: 'Frog'},
+	{id: 'Canberra', name: 'Canberra', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fd/NH-Canberra_poster.png/revision/latest?cb=20200522045240', personality: 'Sisterly', species: 'Koala'},
+	{id: 'Candi', name: 'Candi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/ce/NH-Candi_poster.png/revision/latest?cb=20200410192349', personality: 'Peppy', species: 'Mouse'},
+	{id: 'Carmen', name: 'Carmen', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1b/NH-Carmen_poster.png/revision/latest?cb=20200410185152', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Caroline', name: 'Caroline', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a5/NH-Caroline_poster.png/revision/latest?cb=20200410184152', personality: 'Normal', species: 'Squirrel'},
+	{id: 'Carrie', name: 'Carrie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0d/NH-Carrie_poster.png/revision/latest?cb=20200522045312', personality: 'Normal', species: 'Kangaroo'},
+	{id: 'Cashmere', name: 'Cashmere', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8a/NH-Cashmere_poster.png/revision/latest?cb=20200410184707', personality: 'Snooty', species: 'Sheep'},
+	{id: 'Celia', name: 'Celia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8a/NH-Celia_poster.png/revision/latest?cb=20200522045441', personality: 'Normal', species: 'Eagle'},
+	{id: 'Cesar', name: 'Cesar', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fd/NH-Cesar_poster.png/revision/latest?cb=20200522045504', personality: 'Cranky', species: 'Gorilla'},
+	{id: 'Chadder', name: 'Chadder', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/33/NH-Chadder_poster.png/revision/latest?cb=20200410192119', personality: 'Smug', species: 'Mouse'},
+	{id: 'Charlise', name: 'Charlise', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/71/NH-Charlise_poster.png/revision/latest?cb=20200522045539', personality: 'Sisterly', species: 'Bear'},
+	{id: 'Cheri', name: 'Cheri', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Cheri_poster.png/revision/latest?cb=20200522045610', personality: 'Peppy', species: 'Cub'},
+	{id: 'Cherry', name: 'Cherry', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6e/NH-Cherry_poster.png/revision/latest?cb=20200522045634', personality: 'Sisterly', species: 'Dog'},
+	{id: 'Chester', name: 'Chester', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cf/NH-Chester_poster.png/revision/latest?cb=20200522045921', personality: 'Lazy', species: 'Cub'},
+	{id: 'Chevre', name: 'Chevre', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f4/NH-Chevre_poster.png/revision/latest?cb=20200522045944', personality: 'Normal', species: 'Goat'},
+	{id: 'Chief', name: 'Chief', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/56/NH-Chief_poster.png/revision/latest?cb=20200410183536', personality: 'Cranky', species: 'Wolf'},
+	{id: 'Chops', name: 'Chops', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6d/NH-Chops_poster.png/revision/latest?cb=20200410185841', personality: 'Smug', species: 'Pig'},
+	{id: 'Chow', name: 'Chow', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b7/NH-Chow_poster.png/revision/latest?cb=20200522050009', personality: 'Cranky', species: 'Bear'},
+	{id: 'Chrissy', name: 'Chrissy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1f/NH-Chrissy_poster.png/revision/latest?cb=20200410185303', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Claude', name: 'Claude', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/19/NH-Claude_poster.png/revision/latest?cb=20200410185347', personality: 'Lazy', species: 'Rabbit'},
+	{id: 'Claudia', name: 'Claudia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b1/NH-Claudia_poster.png/revision/latest?cb=20200410183623', personality: 'Snooty', species: 'Tiger'},
+	{id: 'Clay', name: 'Clay', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0a/NH-Clay_poster.png/revision/latest?cb=20200522050111', personality: 'Lazy', species: 'Hamster'},
+	{id: 'Cleo', name: 'Cleo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5e/NH-Cleo_poster.png/revision/latest?cb=20200522050148', personality: 'Snooty', species: 'Horse'},
+	{id: 'Clyde', name: 'Clyde', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/93/NH-Clyde_poster.png/revision/latest?cb=20200522050211', personality: 'Lazy', species: 'Horse'},
+	{id: 'Coach', name: 'Coach', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a3/NH-Coach_poster.png/revision/latest?cb=20200522050254', personality: 'Jock', species: 'Bull'},
+	{id: 'Cobb', name: 'Cobb', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6d/NH-Cobb_poster.png/revision/latest?cb=20200410190041', personality: 'Jock', species: 'Pig'},
+	{id: 'Coco', name: 'Coco', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/37/NH-Coco_poster.png/revision/latest?cb=20200410185633', personality: 'Normal', species: 'Rabbit'},
+	{id: 'Cole', name: 'Cole', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/60/NH-Cole_poster.png/revision/latest?cb=20200410185107', personality: 'Lazy', species: 'Rabbit'},
+	{id: 'Colton', name: 'Colton', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/04/NH-Colton_poster.png/revision/latest?cb=20200522050356', personality: 'Smug', species: 'Horse'},
+	{id: 'Cookie', name: 'Cookie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/85/NH-Cookie_poster.png/revision/latest?cb=20200522050431', personality: 'Peppy', species: 'Dog'},
+	{id: 'Cousteau', name: 'Cousteau', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/41/NH-Cousteau_poster.png/revision/latest?cb=20200522050709', personality: 'Jock', species: 'Frog'},
+	{id: 'Cranston', name: 'Cranston', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/75/NH-Cranston_poster.png/revision/latest?cb=20200410191717', personality: 'Lazy', species: 'Ostrich'},
+	{id: 'Croque', name: 'Croque', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9a/NH-Croque_poster.png/revision/latest?cb=20200522050646', personality: 'Cranky', species: 'Frog'},
+	{id: 'Cube', name: 'Cube', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c6/NH-Cube_poster.png/revision/latest?cb=20200522050627', personality: 'Lazy', species: 'Penguin'},
+	{id: 'Curlos', name: 'Curlos', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/15/NH-Curlos_poster.png/revision/latest?cb=20200410184634', personality: 'Smug', species: 'Sheep'},
+	{id: 'Curly', name: 'Curly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/14/NH-Curly_poster.png/revision/latest?cb=20200410190319', personality: 'Jock', species: 'Pig'},
+	{id: 'Curt', name: 'Curt', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ef/NH-Curt_poster.png/revision/latest?cb=20200522050603', personality: 'Cranky', species: 'Bear'},
+	{id: 'Cyd', name: 'Cyd', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9b/NH-Cyd_poster.png/revision/latest?cb=20200522050546', personality: 'Cranky', species: 'Elephant'},
+	{id: 'Cyrano', name: 'Cyrano', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/65/NH-Cyrano_poster.png/revision/latest?cb=20200522050528', personality: 'Cranky', species: 'Anteater'},
+	{id: 'Daisy', name: 'Daisy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a8/NH-Daisy_poster.png/revision/latest?cb=20200522052353', personality: 'Normal', species: 'Dog'},
+	{id: 'Deena', name: 'Deena', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f5/NH-Deena_poster.png/revision/latest?cb=20200522052417', personality: 'Normal', species: 'Duck'},
+	{id: 'Deirdre', name: 'Deirdre', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c0/NH-Deirdre_poster.png/revision/latest?cb=20200522052447', personality: 'Sisterly', species: 'Deer'},
+	{id: 'Del', name: 'Del', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c2/NH-Del_poster.png/revision/latest?cb=20200522052532', personality: 'Cranky', species: 'Alligator'},
+	{id: 'Deli', name: 'Deli', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/03/NH-Deli_poster.png/revision/latest?cb=20200410192638', personality: 'Lazy', species: 'Monkey'},
+	{id: 'Derwin', name: 'Derwin', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/95/NH-Derwin_poster.png/revision/latest?cb=20200522052553', personality: 'Lazy', species: 'Duck'},
+	{id: 'Diana', name: 'Diana', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Diana_poster.png/revision/latest?cb=20200522052616', personality: 'Snooty', species: 'Deer'},
+	{id: 'Diva', name: 'Diva', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e7/NH-Diva_poster.png/revision/latest?cb=20200522052648', personality: 'Sisterly', species: 'Frog'},
+	{id: 'Dizzy', name: 'Dizzy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/65/NH-Dizzy_poster.png/revision/latest?cb=20200522052719', personality: 'Lazy', species: 'Elephant'},
+	{id: 'Dobie', name: 'Dobie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/90/NH-Dobie_poster.png/revision/latest?cb=20200410183359', personality: 'Cranky', species: 'Wolf'},
+	{id: 'Doc', name: 'Doc', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/52/NH-Doc_poster.png/revision/latest?cb=20200410185403', personality: 'Lazy', species: 'Rabbit'},
+	{id: 'Dom', name: 'Dom', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b2/NH-Dom_poster.png/revision/latest?cb=20200410184416', personality: 'Jock', species: 'Sheep'},
+	{id: 'Dora', name: 'Dora', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ed/NH-Dora_poster.png/revision/latest?cb=20200522052746', personality: 'Normal', species: 'Mouse'},
+	{id: 'Dotty', name: 'Dotty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/72/NH-Dotty_poster.png/revision/latest?cb=20200410185658', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Drago', name: 'Drago', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/52/NH-Drago_poster.png/revision/latest?cb=20200522052808', personality: 'Lazy', species: 'Alligator'},
+	{id: 'Drake', name: 'Drake', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/16/NH-Drake_poster.png/revision/latest?cb=20200522052837', personality: 'Lazy', species: 'Duck'},
+	{id: 'Drift', name: 'Drift', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7f/NH-Drift_poster.png/revision/latest?cb=20200522053217', personality: 'Jock', species: 'Frog'},
+	{id: 'Ed', name: 'Ed', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/20/NH-Ed_poster.png/revision/latest?cb=20200522053254', personality: 'Smug', species: 'Horse'},
+	{id: 'Egbert', name: 'Egbert', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d8/NH-Egbert_poster.png/revision/latest?cb=20200522053317', personality: 'Lazy', species: 'Chicken'},
+	{id: 'Elise', name: 'Elise', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cf/NH-Elise_poster.png/revision/latest?cb=20200522053343', personality: 'Snooty', species: 'Monkey'},
+	{id: 'Ellie', name: 'Ellie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/12/NH-Ellie_poster.png/revision/latest?cb=20200522053412', personality: 'Normal', species: 'Elephant'},
+	{id: 'Elmer', name: 'Elmer', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a5/NH-Elmer_poster.png/revision/latest?cb=20200522053439', personality: 'Lazy', species: 'Horse'},
+	{id: 'Eloise', name: 'Eloise', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d1/NH-Eloise_poster.png/revision/latest?cb=20200522053508', personality: 'Snooty', species: 'Elephant'},
+	{id: 'Elvis', name: 'Elvis', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/36/NH-Elvis_poster.png/revision/latest?cb=20200522053535', personality: 'Cranky', species: 'Lion'},
+	{id: 'Erik', name: 'Erik', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fc/NH-Erik_poster.png/revision/latest?cb=20200522053559', personality: 'Lazy', species: 'Deer'},
+	{id: 'Eunice', name: 'Eunice', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a4/NH-Eunice_poster.png/revision/latest?cb=20200410184747', personality: 'Normal', species: 'Sheep'},
+	{id: 'Eugene', name: 'Eugene', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f7/NH-Eugene_poster.png/revision/latest?cb=20200410192826', personality: 'Smug', species: 'Koala'},
+	{id: 'Fang', name: 'Fang', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/77/NH-Fang_poster.png/revision/latest?cb=20200410183143', personality: 'Cranky', species: 'Wolf'},
+	{id: 'Fauna', name: 'Fauna', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b4/NH-Fauna_poster.png/revision/latest?cb=20200522053652', personality: 'Normal', species: 'Deer'},
+	{id: 'Felicity', name: 'Felicity', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/80/NH-Felicity_poster.png/revision/latest?cb=20200410182504', personality: 'Peppy', species: 'Cat'},
+	{id: 'Filbert', name: 'Filbert', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3e/NH-Filbert_poster.png/revision/latest?cb=20200410184309', personality: 'Lazy', species: 'Squirrel'},
+	{id: 'Flip', name: 'Flip', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/19/NH-Flip_poster.png/revision/latest?cb=20200522053720', personality: 'Jock', species: 'Monkey'},
+	{id: 'Flo', name: 'Flo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/97/NH-Flo_poster.png/revision/latest?cb=20200410190352', personality: 'Sisterly', species: 'Penguin'},
+	{id: 'Flora', name: 'Flora', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/46/NH-Flora_poster.png/revision/latest?cb=20200410191616', personality: 'Peppy', species: 'Ostrich'},
+	{id: 'Flurry', name: 'Flurry', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a3/NH-Flurry_poster.png/revision/latest?cb=20200522053750', personality: 'Normal', species: 'Hamster'},
+	{id: 'Francine', name: 'Francine', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a1/NH-Francine_poster.png/revision/latest?cb=20200410185321', personality: 'Snooty', species: 'Rabbit'},
+	{id: 'Frank', name: 'Frank', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/86/NH-Frank_poster.png/revision/latest?cb=20200410191050', personality: 'Cranky', species: 'Eagle'},
+	{id: 'Freckles', name: 'Freckles', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ea/NH-Freckles_poster.png/revision/latest?cb=20200522053826', personality: 'Peppy', species: 'Duck'},
+	{id: 'Freya', name: 'Freya', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/19/NH-Freya_poster.png/revision/latest?cb=20200410183241', personality: 'Snooty', species: 'Wolf'},
+	{id: 'Friga', name: 'Friga', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/75/NH-Friga_poster.png/revision/latest?cb=20200410190835', personality: 'Snooty', species: 'Penguin'},
+	{id: 'Frita', name: 'Frita', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5e/NH-Frita_poster.png/revision/latest?cb=20200410184508', personality: 'Sisterly', species: 'Sheep'},
+	{id: 'Frobert', name: 'Frobert', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5a/NH-Frobert_poster.png/revision/latest?cb=20200522053855', personality: 'Jock', species: 'Frog'},
+	{id: 'Fuchsia', name: 'Fuchsia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/bf/NH-Fuchsia_poster.png/revision/latest?cb=20200522053932', personality: 'Sisterly', species: 'Deer'},
+	{id: 'Gabi', name: 'Gabi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8b/NH-Gabi_poster.png/revision/latest?cb=20200410185547', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Gala', name: 'Gala', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/87/NH-Gala_poster.png/revision/latest?cb=20200410185906', personality: 'Normal', species: 'Pig'},
+	{id: 'Gaston', name: 'Gaston', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6f/NH-Gaston_poster.png/revision/latest?cb=20200410185604', personality: 'Cranky', species: 'Rabbit'},
+	{id: 'Gayle', name: 'Gayle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ee/NH-Gayle_poster.png/revision/latest?cb=20200522061322', personality: 'Normal', species: 'Alligator'},
+	{id: 'Genji', name: 'Genji', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/70/NH-Genji_poster.png/revision/latest?cb=20200410185443', personality: 'Jock', species: 'Rabbit'},
+	{id: 'Gigi', name: 'Gigi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/44/NH-Gigi_poster.png/revision/latest?cb=20200522061648', personality: 'Snooty', species: 'Frog'},
+	{id: 'Gladys', name: 'Gladys', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/65/NH-Gladys_poster.png/revision/latest?cb=20200410191858', personality: 'Normal', species: 'Ostrich'},
+	{id: 'Gloria', name: 'Gloria', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4d/NH-Gloria_poster.png/revision/latest?cb=20200522061718', personality: 'Snooty', species: 'Duck'},
+	{id: 'Goldie', name: 'Goldie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e6/NH-Goldie_poster.png/revision/latest?cb=20200522061740', personality: 'Normal', species: 'Dog'},
+	{id: 'Gonzo', name: 'Gonzo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/de/NH-Gonzo_poster.png/revision/latest?cb=20200522061802', personality: 'Cranky', species: 'Koala'},
+	{id: 'Goose', name: 'Goose', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/ab/NH-Goose_poster.png/revision/latest?cb=20200522063919', personality: 'Jock', species: 'Chicken'},
+	{id: 'Graham', name: 'Graham', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cf/NH-Graham_poster.png/revision/latest?cb=20200522061907', personality: 'Smug', species: 'Hamster'},
+	{id: 'Greta', name: 'Greta', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1c/NH-Greta_poster.png/revision/latest?cb=20200410192204', personality: 'Snooty', species: 'Mouse'},
+	{id: 'Grizzly', name: 'Grizzly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/96/NH-Grizzly_poster.png/revision/latest?cb=20200522061950', personality: 'Cranky', species: 'Bear'},
+	{id: 'Groucho', name: 'Groucho', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f7/NH-Groucho_poster.png/revision/latest?cb=20200522062020', personality: 'Cranky', species: 'Bear'},
+	{id: 'Gruff', name: 'Gruff', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/44/NH-Gruff_poster.png/revision/latest?cb=20200522063653', personality: 'Cranky', species: 'Goat'},
+	{id: 'Gwen', name: 'Gwen', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/04/NH-Gwen_poster.png/revision/latest?cb=20200410190543', personality: 'Snooty', species: 'Penguin'},
+	{id: 'Hamlet', name: 'Hamlet', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b2/NH-Hamlet_poster.png/revision/latest?cb=20200522062149', personality: 'Jock', species: 'Hamster'},
+	{id: 'Hamphrey', name: 'Hamphrey', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/56/NH-Hamphrey_poster.png/revision/latest?cb=20200522062214', personality: 'Cranky', species: 'Hamster'},
+	{id: 'Hans', name: 'Hans', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/eb/NH-Hans_poster.png/revision/latest?cb=20200522062237', personality: 'Smug', species: 'Gorilla'},
+	{id: 'Harry', name: 'Harry', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8d/NH-Harry_poster.png/revision/latest?cb=20200522062306', personality: 'Cranky', species: 'Hippo'},
+	{id: 'Hazel', name: 'Hazel', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/48/NH-Hazel_poster.png/revision/latest?cb=20200410183827', personality: 'Sisterly', species: 'Squirrel'},
+	{id: 'Henry', name: 'Henry', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/24/NH-Henry_poster.png/revision/latest?cb=20200522062351', personality: 'Smug', species: 'Frog'},
+	{id: 'Hippeux', name: 'Hippeux', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a3/NH-Hippeux_poster.png/revision/latest?cb=20200522062422', personality: 'Smug', species: 'Hippo'},
+	{id: 'Hopkins', name: 'Hopkins', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/00/NH-Hopkins_poster.png/revision/latest?cb=20200410185246', personality: 'Lazy', species: 'Rabbit'},
+	{id: 'Hopper', name: 'Hopper', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/01/NH-Hopper_poster.png/revision/latest?cb=20200410190612', personality: 'Cranky', species: 'Penguin'},
+	{id: 'Hornsby', name: 'Hornsby', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/48/NH-Hornsby_poster.png/revision/latest?cb=20200410184934', personality: 'Lazy', species: 'Rhino'},
+	{id: 'Huck', name: 'Huck', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/ba/NH-Huck_poster.png/revision/latest?cb=20200522062452', personality: 'Smug', species: 'Frog'},
+	{id: 'Hugh', name: 'Hugh', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3e/NH-Hugh_poster.png/revision/latest?cb=20200410190230', personality: 'Lazy', species: 'Pig'},
+	{id: 'Iggly', name: 'Iggly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/48/NH-Iggly_poster.png/revision/latest?cb=20200410190437', personality: 'Jock', species: 'Penguin'},
+	{id: 'Ike', name: 'Ike', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/33/NH-Ike_poster.png/revision/latest?cb=20200522062526', personality: 'Cranky', species: 'Bear'},
+	{id: 'Jacob', name: 'Jacob', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/65/NH-Jacob_poster.png/revision/latest?cb=20200522062554', personality: 'Lazy', species: 'Bird'},
+	{id: 'Jacques', name: 'Jacques', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/bf/NH-Jacques_poster.png/revision/latest?cb=20200522062617', personality: 'Smug', species: 'Bird'},
+	{id: 'Jambette', name: 'Jambette', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/ab/NH-Jambette_poster.png/revision/latest?cb=20200522063434', personality: 'Normal', species: 'Frog'},
+	{id: 'Jay', name: 'Jay', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e6/NH-Jay_poster.png/revision/latest?cb=20200522063408', personality: 'Jock', species: 'Bird'},
+	{id: 'Jeremiah', name: 'Jeremiah', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cd/NH-Jeremiah_poster.png/revision/latest?cb=20200522063336', personality: 'Lazy', species: 'Frog'},
+	{id: 'Jitters', name: 'Jitters', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/de/NH-Jitters_poster.png/revision/latest?cb=20200522063309', personality: 'Jock', species: 'Bird'},
+	{id: 'Joey', name: 'Joey', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e4/NH-Joey_poster.png/revision/latest?cb=20200522063240', personality: 'Lazy', species: 'Duck'},
+	{id: 'Judy', name: 'Judy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/50/NH-Judy_poster.png/revision/latest?cb=20200522063219', personality: 'Snooty', species: 'Cub'},
+	{id: 'Julia', name: 'Julia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fc/NH-Julia_poster.png/revision/latest?cb=20200410191747', personality: 'Snooty', species: 'Ostrich'},
+	{id: 'Julian', name: 'Julian', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f4/NH-Julian_poster.png/revision/latest?cb=20200410192747', personality: 'Smug', species: 'Horse'},
+	{id: 'June', name: 'June', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/90/NH-June_poster.png/revision/latest?cb=20200522063156', personality: 'Normal', species: 'Cub'},
+	{id: 'Kabuki', name: 'Kabuki', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f1/NH-Kabuki_poster.png/revision/latest?cb=20200410182309', personality: 'Cranky', species: 'Cat'},
+	{id: 'Katt', name: 'Katt', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ee/NH-Katt_poster.png/revision/latest?cb=20200410182946', personality: 'Sisterly', species: 'Cat'},
+	{id: 'Keaton', name: 'Keaton', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e5/NH-Keaton_poster.png/revision/latest?cb=20200522063126', personality: 'Smug', species: 'Eagle'},
+	{id: 'Ken', name: 'Ken', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2d/NH-Ken_poster.png/revision/latest?cb=20200522063105', personality: 'Smug', species: 'Chicken'},
+	{id: 'Ketchup', name: 'Ketchup', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e1/NH-Ketchup_poster.png/revision/latest?cb=20200522063044', personality: 'Peppy', species: 'Duck'},
+	{id: 'Kevin', name: 'Kevin', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/20/NH-Kevin_poster.png/revision/latest?cb=20200410185817', personality: 'Jock', species: 'Pig'},
+	{id: 'Kid Cat', name: 'Kid Cat', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/30/NH-Kid_Cat_poster.png/revision/latest?cb=20200410182348', personality: 'Jock', species: 'Cat'},
+	{id: 'Kidd', name: 'Kidd', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/46/NH-Kidd_poster.png/revision/latest?cb=20200522063019', personality: 'Smug', species: 'Goat'},
+	{id: 'Kiki', name: 'Kiki', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/34/NH-Kiki_poster.png/revision/latest?cb=20200410182200', personality: 'Normal', species: 'Cat'},
+	{id: 'Kitt', name: 'Kitt', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ed/NH-Kitt_poster.png/revision/latest?cb=20200522062950', personality: 'Normal', species: 'Kangaroo'},
+	{id: 'Kitty', name: 'Kitty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7a/NH-Kitty_poster.png/revision/latest?cb=20200410182820', personality: 'Snooty', species: 'Cat'},
+	{id: 'Klaus', name: 'Klaus', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/56/NH-Klaus_poster.png/revision/latest?cb=20200522062928', personality: 'Smug', species: 'Bear'},
+	{id: 'Knox', name: 'Knox', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/45/NH-Knox_poster.png/revision/latest?cb=20200522062907', personality: 'Cranky', species: 'Chicken'},
+	{id: 'Kody', name: 'Kody', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/30/NH-Kody_poster.png/revision/latest?cb=20200522062831', personality: 'Jock', species: 'Cub'},
+	{id: 'Kyle', name: 'Kyle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/93/NH-Kyle_poster.png/revision/latest?cb=20200410183323', personality: 'Smug', species: 'Wolf'},
+	{id: 'Leonardo', name: 'Leonardo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1a/NH-Leonardo_poster.png/revision/latest?cb=20200410183650', personality: 'Jock', species: 'Tiger'},
+	{id: 'Leopold', name: 'Leopold', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Leopold_poster.png/revision/latest?cb=20200410192806', personality: 'Smug', species: 'Lion'},
+	{id: 'Lily', name: 'Lily', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f0/NH-Lily_poster.png/revision/latest?cb=20200522070016', personality: 'Normal', species: 'Frog'},
+	{id: 'Limberg', name: 'Limberg', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/12/NH-Limberg_poster.png/revision/latest?cb=20200410192555', personality: 'Cranky', species: 'Mouse'},
+	{id: 'Lionel', name: 'Lionel', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b1/NH-Lionel_poster.png/revision/latest?cb=20200522065956', personality: 'Smug', species: 'Lion'},
+	{id: 'Lobo', name: 'Lobo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f8/NH-Lobo_poster.png/revision/latest?cb=20200410183522', personality: 'Cranky', species: 'Wolf'},
+	{id: 'Lolly', name: 'Lolly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b0/NH-Lolly_poster.png/revision/latest?cb=20200410182533', personality: 'Normal', species: 'Cat'},
+	{id: 'Lopez', name: 'Lopez', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Lopez_poster.png/revision/latest?cb=20200522065932', personality: 'Smug', species: 'Deer'},
+	{id: 'Louie', name: 'Louie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/13/NH-Louie_poster.png/revision/latest?cb=20200522065914', personality: 'Jock', species: 'Gorilla'},
+	{id: 'Lucha', name: 'Lucha', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Lucha_poster.png/revision/latest?cb=20200522065852', personality: 'Smug', species: 'Bird'},
+	{id: 'Lucky', name: 'Lucky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4d/NH-Lucky_poster.png/revision/latest?cb=20200522065833', personality: 'Lazy', species: 'Dog'},
+	{id: 'Lucy', name: 'Lucy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/14/NH-Lucy_poster.png/revision/latest?cb=20200410190214', personality: 'Normal', species: 'Pig'},
+	{id: 'Lyman', name: 'Lyman', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1a/NH-Lyman_poster.png/revision/latest?cb=20200522065812', personality: 'Jock', species: 'Koala'},
+	{id: 'Mac', name: 'Mac', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4d/NH-Mac_poster.png/revision/latest?cb=20200522065753', personality: 'Jock', species: 'Dog'},
+	{id: 'Maddie', name: 'Maddie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/07/NH-Maddie_poster.png/revision/latest?cb=20200522065730', personality: 'Peppy', species: 'Dog'},
+	{id: 'Maelle', name: 'Maelle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/de/NH-Maelle_poster.png/revision/latest?cb=20200522065709', personality: 'Snooty', species: 'Duck'},
+	{id: 'Maggie', name: 'Maggie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4f/NH-Maggie_poster.png/revision/latest?cb=20200410185952', personality: 'Normal', species: 'Pig'},
+	{id: 'Mallary', name: 'Mallary', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/35/NH-Mallary_poster.png/revision/latest?cb=20200522065649', personality: 'Snooty', species: 'Duck'},
+	{id: 'Maple', name: 'Maple', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d1/NH-Maple_poster.png/revision/latest?cb=20200522065624', personality: 'Normal', species: 'Cub'},
+	{id: 'Marcel', name: 'Marcel', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e5/NH-Marcel_poster.png/revision/latest?cb=20200522065604', personality: 'Lazy', species: 'Dog'},
+	{id: 'Marcie', name: 'Marcie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/db/NH-Marcie_poster.png/revision/latest?cb=20200522065544', personality: 'Normal', species: 'Kangaroo'},
+	{id: 'Margie', name: 'Margie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/ff/NH-Margie_poster.png/revision/latest?cb=20200522065513', personality: 'Normal', species: 'Elephant'},
+	{id: 'Marina', name: 'Marina', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fd/NH-Marina_poster.png/revision/latest?cb=20200410192009', personality: 'Normal', species: 'Octopus'},
+	{id: 'Marshal', name: 'Marshal', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e6/NH-Marshal_poster.png/revision/latest?cb=20200522065451', personality: 'Smug', species: 'Squirrel'},
+	{id: 'Mathilda', name: 'Mathilda', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/81/NH-Mathilda_poster.png/revision/latest?cb=20200522065431', personality: 'Snooty', species: 'Kangaroo'},
+	{id: 'Megan', name: 'Megan', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/18/NH-Megan_poster.png/revision/latest?cb=20200522065410', personality: 'Normal', species: 'Bear'},
+	{id: 'Melba', name: 'Melba', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/57/NH-Melba_poster.png/revision/latest?cb=20200522065347', personality: 'Normal', species: 'Koala'},
+	{id: 'Merengue', name: 'Merengue', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9d/NH-Merengue_poster.png/revision/latest?cb=20200410184909', personality: 'Normal', species: 'Rhino'},
+	{id: 'Merry', name: 'Merry', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f0/NH-Merry_poster.png/revision/latest?cb=20200410182436', personality: 'Peppy', species: 'Cat'},
+	{id: 'Midge', name: 'Midge', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/86/NH-Midge_poster.png/revision/latest?cb=20200522065322', personality: 'Normal', species: 'Bird'},
+	{id: 'Mint', name: 'Mint', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2a/NH-Mint_poster.png/revision/latest?cb=20200410184044', personality: 'Snooty', species: 'Squirrel'},
+	{id: 'Mira', name: 'Mira', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/79/NH-Mira_poster.png/revision/latest?cb=20200410185049', personality: 'Sisterly', species: 'Rabbit'},
+	{id: 'Miranda', name: 'Miranda', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f4/NH-Miranda_poster.png/revision/latest?cb=20200522065300', personality: 'Snooty', species: 'Duck'},
+	{id: 'Mitzi', name: 'Mitzi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/20/NH-Mitzi_poster.png/revision/latest?cb=20200410182006', personality: 'Normal', species: 'Cat'},
+	{id: 'Moe', name: 'Moe', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7e/NH-Moe_poster.png/revision/latest?cb=20200410182701', personality: 'Lazy', species: 'Cat'},
+	{id: 'Molly', name: 'Molly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/00/NH-Molly_poster.png/revision/latest?cb=20200522065237', personality: 'Normal', species: 'Duck'},
+	{id: 'Monique', name: 'Monique', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d3/NH-Monique_poster.png/revision/latest?cb=20200410182724', personality: 'Snooty', species: 'Cat'},
+	{id: 'Monty', name: 'Monty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2b/NH-Monty_poster.png/revision/latest?cb=20200522065214', personality: 'Cranky', species: 'Monkey'},
+	{id: 'Moose', name: 'Moose', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b2/NH-Moose_poster.png/revision/latest?cb=20200410192236', personality: 'Jock', species: 'Mouse'},
+	{id: 'Mott', name: 'Mott', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/66/NH-Mott_poster.png/revision/latest?cb=20200522065136', personality: 'Jock', species: 'Lion'},
+	{id: 'Muffy', name: 'Muffy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/70/NH-Muffy_poster.png/revision/latest?cb=20200410184450', personality: 'Sisterly', species: 'Sheep'},
+	{id: 'Murphy', name: 'Murphy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/69/NH-Murphy_poster.png/revision/latest?cb=20200522065115', personality: 'Cranky', species: 'Cub'},
+	{id: 'Nan', name: 'Nan', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/de/NH-Nan_poster.png/revision/latest?cb=20200522184645', personality: 'Normal', species: 'Goat'},
+	{id: 'Nana', name: 'Nana', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/64/NH-Nana_poster.png/revision/latest?cb=20200522184710', personality: 'Normal', species: 'Monkey'},
+	{id: 'Naomi', name: 'Naomi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/97/NH-Naomi_poster.png/revision/latest?cb=20200522184727', personality: 'Snooty', species: 'Cow'},
+	{id: 'Nate', name: 'Nate', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/1a/NH-Nate_poster.png/revision/latest?cb=20200522184748', personality: 'Lazy', species: 'Bear'},
+	{id: 'Nibbles', name: 'Nibbles', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d5/NH-Nibbles_poster.png/revision/latest?cb=20200410184229', personality: 'Peppy', species: 'Squirrel'},
+	{id: 'Norma', name: 'Norma', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/94/NH-Norma_poster.png/revision/latest?cb=20200522184806', personality: 'Normal', species: 'Cow'},
+	{id: 'Octavian', name: 'Octavian', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/82/NH-Octavian_poster.png/revision/latest?cb=20200410192036', personality: 'Cranky', species: 'Octopus'},
+	{id: 'O\'Hare', name: 'O\'Hare', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/57/NH-O%27Hare_poster.png/revision/latest?cb=20200410185212', personality: 'Smug', species: 'Rabbit'},
+	{id: 'Olaf', name: 'Olaf', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Olaf_poster.png/revision/latest?cb=20200522184827', personality: 'Smug', species: 'Anteater'},
+	{id: 'Olive', name: 'Olive', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fd/NH-Olive_poster.png/revision/latest?cb=20200522184858', personality: 'Normal', species: 'Cub'},
+	{id: 'Olivia', name: 'Olivia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5a/NH-Olivia_poster.png/revision/latest?cb=20200410182136', personality: 'Snooty', species: 'Cat'},
+	{id: 'Opal', name: 'Opal', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/73/NH-Opal_poster.png/revision/latest?cb=20200522184918', personality: 'Snooty', species: 'Elephant'},
+	{id: 'Ozzie', name: 'Ozzie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2c/NH-Ozzie_poster.png/revision/latest?cb=20200522185151', personality: 'Lazy', species: 'Koala'},
+	{id: 'Pancetti', name: 'Pancetti', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/49/NH-Pancetti_poster.png/revision/latest?cb=20200410185802', personality: 'Snooty', species: 'Pig'},
+	{id: 'Pango', name: 'Pango', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d3/NH-Pango_poster.png/revision/latest?cb=20200522185217', personality: 'Peppy', species: 'Anteater'},
+	{id: 'Paolo', name: 'Paolo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fc/NH-Paolo_poster.png/revision/latest?cb=20200522185319', personality: 'Lazy', species: 'Elephant'},
+	{id: 'Papi', name: 'Papi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6d/NH-Papi_poster.png/revision/latest?cb=20200522185246', personality: 'Lazy', species: 'Horse'},
+	{id: 'Pashmina', name: 'Pashmina', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/29/NH-Pashmina_poster.png/revision/latest?cb=20200522185339', personality: 'Sisterly', species: 'Goat'},
+	{id: 'Pate', name: 'Pate', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/20/NH-Pate_poster.png/revision/latest?cb=20200522185358', personality: 'Peppy', species: 'Duck'},
+	{id: 'Patty', name: 'Patty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f8/NH-Patty_poster.png/revision/latest?cb=20200522185417', personality: 'Peppy', species: 'Cow'},
+	{id: 'Paula', name: 'Paula', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/79/NH-Paula_poster.png/revision/latest?cb=20200522185438', personality: 'Sisterly', species: 'Bear'},
+	{id: 'Peaches', name: 'Peaches', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8a/NH-Peaches_poster.png/revision/latest?cb=20200522185456', personality: 'Normal', species: 'Horse'},
+	{id: 'Peanut', name: 'Peanut', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/68/NH-Peanut_poster.png/revision/latest?cb=20200522185516', personality: 'Peppy', species: 'Squirrel'},
+	{id: 'Pecan', name: 'Pecan', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/48/NH-Pecan_poster.png/revision/latest?cb=20200410184245', personality: 'Snooty', species: 'Squirrel'},
+	{id: 'Peck', name: 'Peck', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d8/NH-Peck_poster.png/revision/latest?cb=20200522185539', personality: 'Jock', species: 'Bird'},
+	{id: 'Peewee', name: 'Peewee', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cb/NH-Peewee_poster.png/revision/latest?cb=20200522185601', personality: 'Cranky', species: 'Gorilla'},
+	{id: 'Peggy', name: 'Peggy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a1/NH-Peggy_poster.png/revision/latest?cb=20200410185931', personality: 'Peppy', species: 'Pig'},
+	{id: 'Pekoe', name: 'Pekoe', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6a/NH-Pekoe_poster.png/revision/latest?cb=20200522185628', personality: 'Normal', species: 'Cub'},
+	{id: 'Penelope', name: 'Penelope', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/72/NH-Penelope_poster.png/revision/latest?cb=20200410192138', personality: 'Peppy', species: 'Mouse'},
+	{id: 'Phil', name: 'Phil', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/26/NH-Phil_poster.png/revision/latest?cb=20200410191701', personality: 'Smug', species: 'Ostrich'},
+	{id: 'Phoebe', name: 'Phoebe', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8b/NH-Phoebe_poster.png/revision/latest?cb=20200410191547', personality: 'Sisterly', species: 'Ostrich'},
+	{id: 'Pierce', name: 'Pierce', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8f/NH-Pierce_poster.png/revision/latest?cb=20200410191226', personality: 'Jock', species: 'Eagle'},
+	{id: 'Pietro', name: 'Pietro', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/21/NH-Pietro_poster.png/revision/latest?cb=20200522185656', personality: 'Smug', species: 'Sheep'},
+	{id: 'Pinky', name: 'Pinky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ea/NH-Pinky_poster.png/revision/latest?cb=20200522185718', personality: 'Peppy', species: 'Bear'},
+	{id: 'Piper', name: 'Piper', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/47/NH-Piper_poster.png/revision/latest?cb=20200522185742', personality: 'Peppy', species: 'Bird'},
+	{id: 'Pippy', name: 'Pippy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8c/NH-Pippy_poster.png/revision/latest?cb=20200410185526', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Plucky', name: 'Plucky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/62/NH-Plucky_poster.png/revision/latest?cb=20200522185801', personality: 'Sisterly', species: 'Chicken'},
+	{id: 'Pompom', name: 'Pompom', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/18/NH-Pompom_poster.png/revision/latest?cb=20200522185820', personality: 'Peppy', species: 'Duck'},
+	{id: 'Poncho', name: 'Poncho', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/ea/NH-Poncho_poster.png/revision/latest?cb=20200522185838', personality: 'Jock', species: 'Cub'},
+	{id: 'Poppy', name: 'Poppy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Poppy_poster.png/revision/latest?cb=20200410183916', personality: 'Normal', species: 'Squirrel'},
+	{id: 'Portia', name: 'Portia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/79/NH-Portia_poster.png/revision/latest?cb=20200522185904', personality: 'Snooty', species: 'Dog'},
+	{id: 'Prince', name: 'Prince', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0b/NH-Prince_poster.png/revision/latest?cb=20200522185927', personality: 'Lazy', species: 'Frog'},
+	{id: 'Puck', name: 'Puck', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/52/NH-Puck_poster.png/revision/latest?cb=20200410190527', personality: 'Lazy', species: 'Penguin'},
+	{id: 'Puddles', name: 'Puddles', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/78/NH-Puddles_poster.png/revision/latest?cb=20200522185948', personality: 'Peppy', species: 'Frog'},
+	{id: 'Pudge', name: 'Pudge', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2b/NH-Pudge_poster.png/revision/latest?cb=20200522190008', personality: 'Lazy', species: 'Cub'},
+	{id: 'Punchy', name: 'Punchy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d2/NH-Punchy_poster.png/revision/latest?cb=20200410182252', personality: 'Lazy', species: 'Cat'},
+	{id: 'Purrl', name: 'Purrl', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3d/NH-Purrl_poster.png/revision/latest?cb=20200410182641', personality: 'Snooty', species: 'Cat'},
+	{id: 'Queenie', name: 'Queenie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c6/NH-Queenie_poster.png/revision/latest?cb=20200410191922', personality: 'Snooty', species: 'Ostrich'},
+	{id: 'Quillson', name: 'Quillson', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/69/NH-Quillson_poster.png/revision/latest?cb=20200522190041', personality: 'Smug', species: 'Duck'},
+	{id: 'Raddle', name: 'Raddle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5b/NH-Raddle_poster.png/revision/latest?cb=20200522190100', personality: 'Lazy', species: 'Frog'},
+	{id: 'Rasher', name: 'Rasher', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/ba/NH-Rasher_poster.png/revision/latest?cb=20200410190250', personality: 'Cranky', species: 'Pig'},
+	{id: 'Raymond', name: 'Raymond', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8e/NH-Raymond_poster.png/revision/latest?cb=20200522190120', personality: 'Smug', species: 'Cat'},
+	{id: 'Renée', name: 'Renée', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d8/NH-Ren%C3%A9e_poster.png/revision/latest?cb=20200522190140', personality: 'Sisterly', species: 'Rhino'},
+	{id: 'Reneigh', name: 'Reneigh', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/33/NH-Reneigh_poster.png/revision/latest?cb=20200522190158', personality: 'Sisterly', species: 'Horse'},
+	{id: 'Rex', name: 'Rex', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a7/NH-Rex_poster.png/revision/latest?cb=20200522190216', personality: 'Lazy', species: 'Lion'},
+	{id: 'Rhonda', name: 'Rhonda', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/12/NH-Rhonda_poster.png/revision/latest?cb=20200410185017', personality: 'Normal', species: 'Rhino'},
+	{id: 'Ribbot', name: 'Ribbot', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4e/NH-Ribbot_poster.png/revision/latest?cb=20200522190235', personality: 'Jock', species: 'Frog'},
+	{id: 'Ricky', name: 'Ricky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6b/NH-Ricky_poster.png/revision/latest?cb=20200410184030', personality: 'Cranky', species: 'Squirrel'},
+	{id: 'Rizzo', name: 'Rizzo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/93/NH-Rizzo_poster.png/revision/latest?cb=20200410192330', personality: 'Cranky', species: 'Mouse'},
+	{id: 'Roald', name: 'Roald', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4f/NH-Roald_poster.png/revision/latest?cb=20200410190858', personality: 'Jock', species: 'Penguin'},
+	{id: 'Robin', name: 'Robin', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/62/NH-Robin_poster.png/revision/latest?cb=20200522190258', personality: 'Snooty', species: 'Bird'},
+	{id: 'Rocco', name: 'Rocco', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/32/NH-Rocco_poster.png/revision/latest?cb=20200522190320', personality: 'Cranky', species: 'Hippo'},
+	{id: 'Rocket', name: 'Rocket', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d3/NH-Rocket_poster.png/revision/latest?cb=20200522190339', personality: 'Sisterly', species: 'Gorilla'},
+	{id: 'Rod', name: 'Rod', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Rod_poster.png/revision/latest?cb=20200410192406', personality: 'Jock', species: 'Mouse'},
+	{id: 'Rodeo', name: 'Rodeo', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/15/NH-Rodeo_poster.png/revision/latest?cb=20200522190402', personality: 'Lazy', species: 'Bull'},
+	{id: 'Rodney', name: 'Rodney', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/58/NH-Rodney_poster.png/revision/latest?cb=20200522190421', personality: 'Smug', species: 'Hamster'},
+	{id: 'Rolf', name: 'Rolf', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Rolf_poster.png/revision/latest?cb=20200410183806', personality: 'Cranky', species: 'Tiger'},
+	{id: 'Rooney', name: 'Rooney', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/36/NH-Rooney_poster.png/revision/latest?cb=20200522191451', personality: 'Cranky', species: 'Kangaroo'},
+	{id: 'Rory', name: 'Rory', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f3/NH-Rory_poster.png/revision/latest?cb=20200522190446', personality: 'Jock', species: 'Lion'},
+	{id: 'Roscoe', name: 'Roscoe', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/01/NH-Roscoe_poster.png/revision/latest?cb=20200522190504', personality: 'Cranky', species: 'Horse'},
+	{id: 'Rosie', name: 'Rosie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/46/NH-Rosie_poster.png/revision/latest?cb=20200410182055', personality: 'Peppy', species: 'Cat'},
+	{id: 'Rowan', name: 'Rowan', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/41/NH-Rowan_poster.png/revision/latest?cb=20200410183742', personality: 'Jock', species: 'Tiger'},
+	{id: 'Ruby', name: 'Ruby', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5c/NH-Ruby_poster.png/revision/latest?cb=20200410185420', personality: 'Peppy', species: 'Rabbit'},
+	{id: 'Rudy', name: 'Rudy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c1/NH-Rudy_poster.png/revision/latest?cb=20200410182928', personality: 'Jock', species: 'Cat'},
+	{id: 'Sally', name: 'Sally', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/5d/NH-Sally_poster.png/revision/latest?cb=20200410184136', personality: 'Normal', species: 'Squirrel'},
+	{id: 'Samson', name: 'Samson', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d7/NH-Samson_poster.png/revision/latest?cb=20200410192424', personality: 'Jock', species: 'Mouse'},
+	{id: 'Sandy', name: 'Sandy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/93/NH-Sandy_poster.png/revision/latest?cb=20200410191836', personality: 'Normal', species: 'Ostrich'},
+	{id: 'Savannah', name: 'Savannah', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Savannah_poster.png/revision/latest?cb=20200522190527', personality: 'Normal', species: 'Horse'},
+	{id: 'Scoot', name: 'Scoot', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9d/NH-Scoot_poster.png/revision/latest?cb=20200522190547', personality: 'Jock', species: 'Duck'},
+	{id: 'Shari', name: 'Shari', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/47/NH-Shari_poster.png/revision/latest?cb=20200410192655', personality: 'Sisterly', species: 'Monkey'},
+	{id: 'Sheldon', name: 'Sheldon', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8e/NH-Sheldon_poster.png/revision/latest?cb=20200410183900', personality: 'Jock', species: 'Squirrel'},
+	{id: 'Shep', name: 'Shep', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e9/NH-Shep_poster.png/revision/latest?cb=20200522190611', personality: 'Smug', species: 'Dog'},
+	{id: 'Sherb', name: 'Sherb', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/04/Sherb_Poster_NH.png/revision/latest?cb=20200319185254', personality: 'Lazy', species: 'Goat'},
+	{id: 'Simon', name: 'Simon', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6a/NH-Simon_poster.png/revision/latest?cb=20200522190630', personality: 'Lazy', species: 'Monkey'},
+	{id: 'Skye', name: 'Skye', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Skye_poster.png/revision/latest?cb=20200410183340', personality: 'Normal', species: 'Wolf'},
+	{id: 'Sly', name: 'Sly', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7f/NH-Sly_poster.png/revision/latest?cb=20200522190705', personality: 'Jock', species: 'Alligator'},
+	{id: 'Snake', name: 'Snake', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/2c/NH-Snake_poster.png/revision/latest?cb=20200410185619', personality: 'Jock', species: 'Rabbit'},
+	{id: 'Snooty', name: 'Snooty', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d2/NH-Snooty_poster.png/revision/latest?cb=20200522190727', personality: 'Snooty', species: 'Anteater'},
+	{id: 'Soleil', name: 'Soleil', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/9f/NH-Soleil_poster.png/revision/latest?cb=20200522190746', personality: 'Snooty', species: 'Hamster'},
+	{id: 'Sparro', name: 'Sparro', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/69/NH-Sparro_poster.png/revision/latest?cb=20200522190812', personality: 'Jock', species: 'Bird'},
+	{id: 'Spike', name: 'Spike', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/95/NH-Spike_poster.png/revision/latest?cb=20200410185000', personality: 'Cranky', species: 'Rhino'},
+	{id: 'Spork', name: 'Spork', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/db/NH-Spork_poster.png/revision/latest?cb=20200522190834', personality: 'Lazy', species: 'Pig'},
+	{id: 'Sprinkle', name: 'Sprinkle', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e5/NH-Sprinkle_poster.png/revision/latest?cb=20200410190333', personality: 'Peppy', species: 'Penguin'},
+	{id: 'Sprocket', name: 'Sprocket', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e6/NH-Sprocket_poster.png/revision/latest?cb=20200410191806', personality: 'Jock', species: 'Ostrich'},
+	{id: 'Static', name: 'Static', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/ff/NH-Static_poster.png/revision/latest?cb=20200410184107', personality: 'Cranky', species: 'Squirrel'},
+	{id: 'Stella', name: 'Stella', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/50/NH-Stella_poster.png/revision/latest?cb=20200410184731', personality: 'Normal', species: 'Sheep'},
+	{id: 'Sterling', name: 'Sterling', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0a/NH-Sterling_poster.png/revision/latest?cb=20200410191029', personality: 'Jock', species: 'Eagle'},
+	{id: 'Stinky', name: 'Stinky', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/cc/NH-Stinky_poster.png/revision/latest?cb=20200522190854', personality: 'Jock', species: 'Cat'},
+	{id: 'Stitches', name: 'Stitches', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/0a/NH-Stitches_poster.png/revision/latest?cb=20200522190915', personality: 'Lazy', species: 'Cub'},
+	{id: 'Stu', name: 'Stu', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fc/NH-Stu_poster.png/revision/latest?cb=20200522190934', personality: 'Lazy', species: 'Bull'},
+	{id: 'Sydney', name: 'Sydney', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/f6/NH-Sydney_poster.png/revision/latest?cb=20200522190951', personality: 'Normal', species: 'Koala'},
+	{id: 'Sylvana', name: 'Sylvana', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/41/NH-Sylvana_poster.png/revision/latest?cb=20200410183935', personality: 'Normal', species: 'Squirrel'},
+	{id: 'Sylvia', name: 'Sylvia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4b/NH-Sylvia_poster.png/revision/latest?cb=20200522191011', personality: 'Sisterly', species: 'Kangaroo'},
+	{id: 'Tabby', name: 'Tabby', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d7/NH-Tabby_poster.png/revision/latest?cb=20200410182747', personality: 'Peppy', species: 'Cat'},
+	{id: 'Tad', name: 'Tad', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c8/NH-Tad_poster.png/revision/latest?cb=20200522182923', personality: 'Jock', species: 'Frog'},
+	{id: 'Tammi', name: 'Tammi', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d1/NH-Tammi_poster.png/revision/latest?cb=20200522182953', personality: 'Peppy', species: 'Monkey'},
+	{id: 'Tammy', name: 'Tammy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/66/NH-Tammy_poster.png/revision/latest?cb=20200522183012', personality: 'Sisterly', species: 'Cub'},
+	{id: 'Tangy', name: 'Tangy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c8/NH-Tangy_poster.png/revision/latest?cb=20200410182223', personality: 'Peppy', species: 'Cat'},
+	{id: 'Tank', name: 'Tank', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/eb/NH-Tank_poster.png/revision/latest?cb=20200410185033', personality: 'Jock', species: 'Rhino'},
+	{id: 'Tasha', name: 'Tasha', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d3/NH-Tasha_poster.png/revision/latest?cb=20200522183129', personality: 'Snooty', species: 'Squirrel'},
+	{id: 'T-Bone', name: 'T-Bone', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/ca/NH-T-Bone_poster.png/revision/latest?cb=20200522183035', personality: 'Cranky', species: 'Bull'},
+	{id: 'Teddy', name: 'Teddy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/11/NH-Teddy_poster.png/revision/latest?cb=20200522183157', personality: 'Jock', species: 'Bear'},
+	{id: 'Tex', name: 'Tex', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/a/a1/NH-Tex_poster.png/revision/latest?cb=20200410190412', personality: 'Smug', species: 'Penguin'},
+	{id: 'Tia', name: 'Tia', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/41/NH-Tia_poster.png/revision/latest?cb=20200522183230', personality: 'Normal', species: 'Elephant'},
+	{id: 'Tiffany', name: 'Tiffany', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/f/fb/NH-Tiffany_poster.png/revision/latest?cb=20200410185508', personality: 'Snooty', species: 'Rabbit'},
+	{id: 'Timbra', name: 'Timbra', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/6a/NH-Timbra_poster.png/revision/latest?cb=20200410184616', personality: 'Snooty', species: 'Sheep'},
+	{id: 'Tipper', name: 'Tipper', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/6/64/NH-Tipper_poster.png/revision/latest?cb=20200522183257', personality: 'Snooty', species: 'Cow'},
+	{id: 'Tom', name: 'Tom', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7d/NH-Tom_poster.png/revision/latest?cb=20200522183324', personality: 'Cranky', species: 'Cat'},
+	{id: 'Truffles', name: 'Truffles', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c9/NH-Truffles_poster.png/revision/latest?cb=20200522183349', personality: 'Peppy', species: 'Pig'},
+	{id: 'Tucker', name: 'Tucker', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/32/NH-Tucker_poster.png/revision/latest?cb=20200522183418', personality: 'Lazy', species: 'Elephant'},
+	{id: 'Tutu', name: 'Tutu', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/9/95/NH-Tutu_poster.png/revision/latest?cb=20200522183436', personality: 'Peppy', species: 'Bear'},
+	{id: 'Twiggy', name: 'Twiggy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/52/NH-Twiggy_poster.png/revision/latest?cb=20200522183456', personality: 'Peppy', species: 'Bird'},
+	{id: 'Tybalt', name: 'Tybalt', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/dc/NH-Tybalt_poster.png/revision/latest?cb=20200410183724', personality: 'Jock', species: 'Tiger'},
+	{id: 'Ursala', name: 'Ursala', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/2/23/NH-Ursala_poster.png/revision/latest?cb=20200522183519', personality: 'Sisterly', species: 'Bear'},
+	{id: 'Velma', name: 'Velma', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/17/NH-Velma_poster.png/revision/latest?cb=20200522183543', personality: 'Snooty', species: 'Goat'},
+	{id: 'Vesta', name: 'Vesta', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8f/NH-Vesta_poster.png/revision/latest?cb=20200410184828', personality: 'Normal', species: 'Sheep'},
+	{id: 'Vic', name: 'Vic', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b9/NH-Vic_poster.png/revision/latest?cb=20200522183604', personality: 'Cranky', species: 'Bull'},
+	{id: 'Victoria', name: 'Victoria', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/46/NH-Victoria_poster.png/revision/latest?cb=20200522183627', personality: 'Peppy', species: 'Horse'},
+	{id: 'Violet', name: 'Violet', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b7/NH-Violet_poster.png/revision/latest?cb=20200522183649', personality: 'Snooty', species: 'Gorilla'},
+	{id: 'Vivian', name: 'Vivian', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d2/NH-Vivian_poster.png/revision/latest?cb=20200410183210', personality: 'Snooty', species: 'Wolf'},
+	{id: 'Vladimir', name: 'Vladimir', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/7c/NH-Vladimir_poster.png/revision/latest?cb=20200522183708', personality: 'Cranky', species: 'Cub'},
+	{id: 'Wade', name: 'Wade', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/8/8e/NH-Wade_poster.png/revision/latest?cb=20200410190514', personality: 'Lazy', species: 'Penguin'},
+	{id: 'Walker', name: 'Walker', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/e/e0/NH-Walker_poster.png/revision/latest?cb=20200522183727', personality: 'Lazy', species: 'Dog'},
+	{id: 'Walt', name: 'Walt', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/3/3a/NH-Walt_poster.png/revision/latest?cb=20200522183748', personality: 'Cranky', species: 'Kangaroo'},
+	{id: 'Wart Jr.', name: 'Wart Jr.', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/d/d7/NH-WartJr_poster.png/revision/latest?cb=20200522183806', personality: 'Cranky', species: 'Frog'},
+	{id: 'Weber', name: 'Weber', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/5/54/NH-Weber_poster.png/revision/latest?cb=20200522183823', personality: 'Lazy', species: 'Duck'},
+	{id: 'Wendy', name: 'Wendy', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/4/4e/NH-Wendy_poster.png/revision/latest?cb=20200410184538', personality: 'Peppy', species: 'Sheep'},
+	{id: 'Whitney', name: 'Whitney', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b0/NH-Whitney_poster.png/revision/latest?cb=20200410183425', personality: 'Snooty', species: 'Wolf'},
+	{id: 'Willow', name: 'Willow', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/0/05/NH-Willow_poster.png/revision/latest?cb=20200522183842', personality: 'Snooty', species: 'Sheep'},
+	{id: 'Winnie', name: 'Winnie', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/7/76/NH-Winnie_poster.png/revision/latest?cb=20200522184108', personality: 'Peppy', species: 'Horse'},
+	{id: 'Wolfgang', name: 'Wolfgang', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/19/NH-Wolfgang_poster.png/revision/latest?cb=20200410183450', personality: 'Cranky', species: 'Wolf'},
+	{id: 'Yuka', name: 'Yuka', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/b/b6/NH-Yuka_poster.png/revision/latest?cb=20200522183928', personality: 'Snooty', species: 'Koala'},
+	{id: 'Zell', name: 'Zell', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/c/c8/NH-Zell_poster.png/revision/latest?cb=20200522183947', personality: 'Smug', species: 'Deer'},
+	{id: 'Zucker', name: 'Zucker', image: 'https://vignette.wikia.nocookie.net/animalcrossing/images/1/10/NH-Zucker_poster.png/revision/latest?cb=20200522184009', personality: 'Lazy', species: 'Octopus'}
+];
+
+var myPicker = new picker.Picker({
+    items: items,
+	defaultSettings: {
+		personality: ["Cranky", "Jock", "Lazy", "Normal", "Peppy", "Sisterly", "Smug", "Snooty"],
+		species: ["Alligator", "Anteater", "Bear", "Bird", "Bull", "Cat", "Chicken", "Cow", "Cub", "Deer", "Dog", "Duck", "Eagle", "Elephant", "Frog", "Goat", "Gorilla", "Hamster", "Hippo", "Horse", "Kangaroo", "Koala", "Lion", "Monkey", "Mouse", "Octopus", "Ostrich", "Penguin", "Pig", "Rabbit", "Rhino", "Sheep", "Squirrel", "Tiger", "Wolf"]
+	},
+	shouldIncludeItem: function(item, settings) {
+		return settings.personality.indexOf(item.personality) !== -1 && settings.species.indexOf(item.species) !== -1;
+	}
+});
+
+var pickerUI = new PickerUI(myPicker, {
+    elements: {
+        pick: "#pick",
+        pass: "#pass",
+        undo: "#undo",
+        redo: "#redo",
+        evaluating: "#evaluating",
+        favorites: "#favorites",
+		settings: {
+			species: '.species',
+			personality: '.personality'
+		}
+    }
+});
+
+pickerUI.initialize();
+
+/* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
+var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+    draggable: '.item',
+    animation: 100,
+    onStart: function() {
+        pickerUI.elem.favorites.addClass("sorting");
+    },
+    onEnd: function() {
+        pickerUI.elem.favorites.removeClass("sorting");
+    },
+    onUpdate: function() {
+        myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+            return pickerUI.getItem(this);
+        }).get());
+        pickerUI.update(true);
+    }
+});
+/* End sortable favorites */
+</script>
+</body>
+</html>
