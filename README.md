@@ -1,2 +1,4 @@
 # acnh-picker
-picker for favorite villagers from animal crossing new horizons
+Picker for favorite villagers from Animal Crossing: New Horizons.
+
+https://alfalfascout.github.io/acnh-picker/
